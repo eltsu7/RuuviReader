@@ -1,25 +1,41 @@
 package main
 
 import (
+	"encoding/json"
+	"os"
 	"strings"
 
 	"tinygo.org/x/bluetooth"
 )
 
 var adapter = bluetooth.DefaultAdapter
-
-// F2:2D:EB:37:8A:D4
-// D3:1A:DA:17:E5:C6
+var tags = map[string]string{}
 
 func main() {
 	// Enable BLE interface.
 	must("enable BLE stack", adapter.Enable())
 
+	// Read tags from config.json
+	file, err := os.ReadFile("config.json")
+	if err != nil {
+		println(err)
+	}
+	var configData map[string]interface{}
+	json.Unmarshal([]byte(file), &configData)
+
+	configTags, ok := configData["ruuvitags"]
+	if !ok {
+		panic("Malformed config file")
+	}
+	for k, v := range configTags.(map[string]interface{}) {
+		tags[k] = v.(string)
+	}
+
 	// Start scanning.
 	println("connection handler")
 	adapter.SetConnectHandler(connectHandler)
 	println("scanning...")
-	err := adapter.Scan(handleData)
+	err = adapter.Scan(handleData)
 	println("end")
 	must("start scan", err)
 
