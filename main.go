@@ -27,8 +27,10 @@ func main() {
 	if !ok {
 		panic("Malformed config file")
 	}
+	println("Tags from config:")
 	for k, v := range configTags.(map[string]interface{}) {
 		tags[k] = v.(string)
+		println("\t", k, v.(string))
 	}
 
 	// Start scanning.
@@ -41,32 +43,29 @@ func main() {
 
 }
 
-func handleData(adapter *bluetooth.Adapter, device bluetooth.ScanResult) {
+func handleData(adapter *bluetooth.Adapter, scanResult bluetooth.ScanResult) {
 	found := false
 
-	if !strings.Contains(device.LocalName(), "Ruuvi") {
+	if !strings.Contains(scanResult.LocalName(), "Ruuvi") {
 		return
 	}
 
 	for _, v := range tags {
-		if device.Address.String() == v {
+		if scanResult.Address.String() == v {
 			found = true
 			break
 		}
 	}
-
 	if !found {
 		return
 	}
 
-	println(device.LocalName())
-
-	connectedDevice, err := adapter.Connect(device.Address, bluetooth.ConnectionParams{})
+	device, err := adapter.Connect(scanResult.Address, bluetooth.ConnectionParams{})
 	if err != nil {
 		println("Connect error:", err)
 	}
 
-	services, err := connectedDevice.DiscoverServices(nil)
+	services, err := device.DiscoverServices(nil)
 	if err != nil {
 		println("DiscoverServices error:", err)
 	}
