@@ -42,19 +42,14 @@ func main() {
 }
 
 func handleData(adapter *bluetooth.Adapter, device bluetooth.ScanResult) {
-	var macs = []string{
-		"F2:2D:EB:37:8A:D4",
-		"D3:1A:DA:17:E5:C6",
-	}
-
 	found := false
 
 	if !strings.Contains(device.LocalName(), "Ruuvi") {
 		return
 	}
 
-	for _, val := range macs {
-		if device.Address.String() == val {
+	for _, v := range tags {
+		if device.Address.String() == v {
 			found = true
 			break
 		}
